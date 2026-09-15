@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "apps.address",
     "apps.printing",
     "apps.food",
+    "apps.banner"
 ]
 
 

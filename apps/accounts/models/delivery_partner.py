@@ -1,3 +1,5 @@
+# apps/accounts/models/delivery_partner.py
+
 import uuid
 
 from django.conf import settings
@@ -31,12 +33,6 @@ class DeliveryPartner(models.Model):
     )
 
     date_of_birth = models.DateField(
-        null=True,
-        blank=True,
-    )
-
-    profile_image = models.ImageField(
-        upload_to="delivery_partners/profile/",
         null=True,
         blank=True,
     )

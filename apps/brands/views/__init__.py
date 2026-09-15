@@ -1,0 +1,1 @@
+from apps.brands.views.brand_view import create_brand

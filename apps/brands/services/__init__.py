@@ -1,0 +1,1 @@
+from apps.brands.services.brand_service import BrandService

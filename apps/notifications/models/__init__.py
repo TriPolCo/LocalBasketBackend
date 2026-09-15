@@ -1,0 +1,1 @@
+from apps.notifications.models.otp import EmailOTP

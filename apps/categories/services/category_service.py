@@ -206,7 +206,6 @@ def delete_category(category):
 # ============================================================
 # GET CATEGORY TREE
 # ============================================================
-
 def get_category_tree():
 
     categories = (
@@ -227,19 +226,21 @@ def get_category_tree():
 
     for category in categories:
 
-        subcategories = (
-            category.subcategories
-            .all()
-        )
+        subcategories = category.subcategories.all()
 
         result.append(
             {
                 "id": str(category.id),
                 "name": category.name,
                 "slug": category.slug,
+
+                # Category image
+                "image_url": category.image_url,
+                "image_public_id": category.image_public_id,
+
                 "is_active": category.is_active,
 
-                # Temporary until Product model exists
+                # Temporary until Product count logic
                 "product_count": 0,
 
                 "subcategory_count": (
@@ -251,9 +252,14 @@ def get_category_tree():
                         "id": str(sub.id),
                         "name": sub.name,
                         "slug": sub.slug,
+
+                        # Subcategory image
+                        "image_url": sub.image_url,
+                        "image_public_id": sub.image_public_id,
+
                         "is_active": sub.is_active,
 
-                        # Temporary until Product model exists
+                        # Temporary until Product count logic
                         "product_count": 0,
                     }
                     for sub in subcategories

@@ -478,3 +478,42 @@ class OrderService:
         )
 
         return order
+
+    @staticmethod
+    @transaction.atomic
+    def update_order_status(order, new_status):
+        old_status = order.status
+
+        if old_status == new_status:
+            raise ValidationError({
+                "message": f"Order is already {new_status}."
+            })
+
+        order.status = new_status
+
+        # -----------------------------------------
+        # DELIVERED
+        # -----------------------------------------
+        if new_status == Order.Status.DELIVERED:
+            order.delivered_at = timezone.now()
+        else:
+            order.delivered_at = None
+
+        # -----------------------------------------
+        # CANCELLED
+        # -----------------------------------------
+        if new_status == Order.Status.CANCELLED:
+            order.cancelled_at = timezone.now()
+        else:
+            order.cancelled_at = None
+
+        order.save(
+            update_fields=[
+                "status",
+                "delivered_at",
+                "cancelled_at",
+                "updated_at",
+            ]
+        )
+
+        return order

@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Count, Q
 from django.utils.text import slugify
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
@@ -319,4 +320,68 @@ class ProductService:
             ),
             id=product_id,
             is_active=True,
+        )
+
+    @staticmethod
+    def get_products_by_category(category_id):
+
+        return (
+            Product.objects
+            .filter(
+                category_id=category_id,
+                is_active=True,
+            )
+            .select_related(
+                "category",
+                "subcategory",
+                "brand",
+            )
+            .prefetch_related(
+                "variants",
+                "variants__images",
+                "variants__variant_values__value__attribute",
+            )
+            .order_by("-created_at")
+        )
+
+    @staticmethod
+    def get_popular_products(limit=10):
+
+        return (
+            Product.objects
+            .filter(
+                is_active=True,
+                variants__is_active=True,
+            )
+            .annotate(
+                order_count=Count(
+                    "variants__order_items__order",
+                    filter=Q(
+                        variants__order_items__order__status__in=[
+                            "PROCESSING",
+                            "SHIPPED",
+                            "IN_TRANSIT",
+                            "DELIVERED",
+                        ]
+                    ),
+                    distinct=True,
+                )
+            )
+            .filter(
+                order_count__gt=0
+            )
+            .select_related(
+                "category",
+                "subcategory",
+                "brand",
+            )
+            .prefetch_related(
+                "variants",
+                "variants__images",
+                "variants__variant_values__value__attribute",
+            )
+            .order_by(
+                "-order_count",
+                "-created_at",
+            )[:limit]
         )

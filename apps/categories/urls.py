@@ -2,10 +2,11 @@ from django.urls import path
 
 from apps.categories.views.category_views import (category_list,category_tree,category_detail,create_category,
     update_category,delete_category_view,create_subcategory_view,subcategory_list,update_subcategory_view,delete_subcategory_view,)
-
+from apps.categories.views.category_views import category_list_public
 
 urlpatterns = [
     path("",category_list, name="category-list",),
+    path("user/categories",category_list_public,name="category-list-public",),
     path("tree/",category_tree,name="category-tree",),
     path("create/",create_category,name="category-create",),
     path("<uuid:category_id>/",category_detail,name="category-detail",),

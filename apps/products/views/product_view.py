@@ -95,3 +95,58 @@ def get_product_by_id(request, product_id):
         },
         status=status.HTTP_200_OK,
     )
+
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_products_by_category(request, category_id):
+
+    products = ProductService.get_products_by_category(
+        category_id
+    )
+
+    serializer = ProductListSerializer(
+        products,
+        many=True
+    )
+
+    return Response(
+        {
+            "success": True,
+            "message": "Products fetched successfully.",
+            "data": serializer.data,
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_popular_products(request):
+
+    try:
+        limit = int(request.query_params.get("limit", 10))
+    except ValueError:
+        limit = 10
+
+    limit = max(1, min(limit, 50))
+
+    products = ProductService.get_popular_products(
+        limit=limit
+    )
+
+    serializer = ProductListSerializer(
+        products,
+        many=True
+    )
+
+    return Response(
+        {
+            "success": True,
+            "message": "Popular products fetched successfully.",
+            "count": len(serializer.data),
+            "data": serializer.data,
+        },
+        status=status.HTTP_200_OK,
+    )

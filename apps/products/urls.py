@@ -1,9 +1,11 @@
 from django.urls import path
 
-from apps.products.views.product_view import create_product,get_products,get_product_by_id
+from apps.products.views.product_view import create_product, get_products, get_product_by_id, get_products_by_category, \
+    get_popular_products
 from apps.products.views.variant_attribute_view import create_variant_attribute,get_variant_attributes
 from apps.products.views.variant_value_view import create_variant_value
 from apps.products.views.product_search_view import search_products
+from apps.products.views.flash_sale_view import get_flash_sale_products
 
 urlpatterns = [
     path("",get_products,name="get-products",),
@@ -13,4 +15,8 @@ urlpatterns = [
     path("variant-attributes/",get_variant_attributes,name="get-variant-attributes",),
     path("variant-values/create/",create_variant_value,name="create-variant-value",),
     path("search/",search_products,name="search-products",),
+    path("flash-sale/",get_flash_sale_products,name="flash-sale-products"),
+    path("category/<uuid:category_id>/",get_products_by_category,name="products-by-category",),
+    path("popular/",get_popular_products,name="popular-products",
+),
 ]

@@ -19,6 +19,8 @@ class CategoryListSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "slug",
+            "image_url",
+            "image_public_id",
             "is_active",
             "product_count",
             "subcategory_count",
@@ -44,13 +46,14 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
-
 class MainCategoryCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
         fields = [
             "name",
+            "image_url",
+            "image_public_id",
             "is_active",
         ]
 
@@ -82,6 +85,16 @@ class MainCategoryCreateSerializer(serializers.ModelSerializer):
             **validated_data,
         )
 
+    def create(self, validated_data):
+        validated_data["slug"] = slugify(
+            validated_data["name"]
+        )
+
+        return Category.objects.create(
+            parent=None,
+            **validated_data,
+        )
+
 
 class SubcategoryCreateSerializer(serializers.ModelSerializer):
 
@@ -89,6 +102,8 @@ class SubcategoryCreateSerializer(serializers.ModelSerializer):
         model = Category
         fields = [
             "name",
+            "image_url",
+            "image_public_id",
             "is_active",
         ]
 
@@ -129,13 +144,14 @@ class SubcategoryCreateSerializer(serializers.ModelSerializer):
             **validated_data,
         )
 
-
 class MainCategoryUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
         fields = [
             "name",
+            "image_url",
+            "image_public_id",
             "is_active",
         ]
 
@@ -174,13 +190,14 @@ class MainCategoryUpdateSerializer(serializers.ModelSerializer):
             validated_data,
         )
 
-
 class SubcategoryUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
         fields = [
             "name",
+            "image_url",
+            "image_public_id",
             "is_active",
         ]
 

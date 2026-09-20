@@ -3,7 +3,7 @@ from rest_framework.decorators import (
     api_view,
     permission_classes,
 )
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from apps.categories.models.category import Category
@@ -37,6 +37,31 @@ from apps.categories.services.category_service import (
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def category_list(request):
+    categories = get_main_categories()
+
+    serializer = CategoryListSerializer(
+        categories,
+        many=True,
+        context={
+            "request": request,
+        },
+    )
+
+    return Response(
+        {
+            "message": "Categories fetched successfully.",
+            "data": serializer.data,
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def category_list_public(request):
     categories = get_main_categories()
 
     serializer = CategoryListSerializer(

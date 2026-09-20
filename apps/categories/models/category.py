@@ -28,6 +28,18 @@ class Category(models.Model):
         unique=True,
     )
 
+    image_url = models.URLField(
+        max_length=1000,
+        null=True,
+        blank=True,
+    )
+
+    image_public_id = models.CharField(
+        max_length=500,
+        null=True,
+        blank=True,
+    )
+
     is_active = models.BooleanField(
         default=True,
         db_index=True,

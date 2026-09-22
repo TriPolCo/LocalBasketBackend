@@ -15,5 +15,6 @@ urlpatterns = [
     path("api/v1/printing/",include("apps.printing.urls"),),
     path("api/v1/food/",include("apps.food.urls"),),
     path("api/v1/banner/",include("apps.banner.urls"),),
+    path("api/v1/invoices/",include("apps.invoices.urls"),),
 
 ]

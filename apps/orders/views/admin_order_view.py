@@ -14,7 +14,7 @@ from apps.orders.services.admin_order_service import (
 from apps.orders.serializers.order_status_serializer import AdminOrderStatusUpdateSerializer
 from apps.orders.services.order_service import OrderService
 from apps.orders.models.order import Order
-
+from apps.orders.serializers.admin_order_detail_serializer import AdminOrderDetailSerializer
 
 
 @api_view(["GET"])
@@ -111,3 +111,33 @@ def admin_update_order_status(request, order_id):
         },
         status=status.HTTP_200_OK,
     )
+
+
+@api_view(["GET"])
+@permission_classes([IsAdmin])
+def admin_get_order_details(request, order_id):
+
+    order = AdminOrderService.get_order_details(order_id)
+    if not order:
+        return Response(
+            {
+                "success": False,
+                "message": "Order not found.",
+                "data": None,
+            },
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    serializer = AdminOrderDetailSerializer(
+        order
+    )
+
+    return Response(
+        {
+            "success": True,
+            "message": "Order details fetched successfully.",
+            "data": serializer.data,
+        },
+        status=status.HTTP_200_OK,
+    )
+

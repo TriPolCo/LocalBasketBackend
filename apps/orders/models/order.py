@@ -8,7 +8,6 @@ class Order(models.Model):
     class Status(models.TextChoices):
         PROCESSING = "PROCESSING", "Processing"
         SHIPPED = "SHIPPED", "Shipped"
-        IN_TRANSIT = "IN_TRANSIT", "In Transit"
         DELIVERED = "DELIVERED", "Delivered"
         CANCELLED = "CANCELLED", "Cancelled"
 

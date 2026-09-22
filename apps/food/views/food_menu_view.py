@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from apps.food.serializers.food_menu_serializer import (
     CustomerMenuCategorySerializer,
-    CustomerFoodItemSerializer,
+    CustomerFoodItemSerializer, CustomerFoodMenuSerializer,
 )
 from apps.food.services.food_menu_service import FoodMenuService
 
@@ -95,5 +95,45 @@ def get_food_item(request, food_item_id):
     return Response({
         "success": True,
         "message": "Food item fetched successfully.",
+        "data": serializer.data,
+    })
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_food_menus(request):
+
+    categories = FoodMenuService.get_categories()
+
+    serializer = CustomerFoodMenuSerializer(
+        categories,
+        many=True,
+    )
+
+    return Response({
+        "success": True,
+        "message": "Food menus fetched successfully.",
+        "count": categories.count(),
+        "data": serializer.data,
+    })
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def get_food_items_by_menu(request, menu_id):
+
+    items = FoodMenuService.get_food_items_by_menu(
+        menu_id
+    )
+
+    serializer = CustomerFoodItemSerializer(
+        items,
+        many=True,
+    )
+
+    return Response({
+        "success": True,
+        "message": "Food items fetched successfully.",
+        "count": items.count(),
         "data": serializer.data,
     })

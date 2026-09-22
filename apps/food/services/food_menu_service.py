@@ -172,3 +172,9 @@ class FoodMenuService:
             raise ValidationError({
                 "food_item": "Food item not found."
             })
+
+    @staticmethod
+    def get_food_items_by_menu(menu_id):
+        return FoodMenuService.get_food_items({
+            "category": menu_id,
+        })

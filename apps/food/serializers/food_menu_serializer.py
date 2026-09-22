@@ -100,3 +100,20 @@ class CustomerMenuCategorySerializer(serializers.ModelSerializer):
             "food_items",
         ]
         read_only_fields = fields
+
+
+class CustomerFoodMenuSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = MenuCategory
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "description",
+            "image_url",
+            "cloudinary_public_id",
+            "display_order",
+            "is_active",
+        ]
+        read_only_fields = fields

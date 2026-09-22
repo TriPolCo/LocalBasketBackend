@@ -47,8 +47,16 @@ INSTALLED_APPS = [
     "apps.address",
     "apps.printing",
     "apps.food",
-    "apps.banner"
+    "apps.banner",
+    "apps.invoices"
 ]
+
+import os
+
+PUBLIC_BASE_URL = os.getenv(
+    "PUBLIC_BASE_URL",
+    "http://127.0.0.1:8000",
+)
 
 
 MIDDLEWARE = [

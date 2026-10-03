@@ -1,5 +1,7 @@
 from django.urls import path
 
+from apps.accounts.views.admin_account_view import superuser_update_password, superuser_update_email, \
+    superuser_update_phone, get_superuser_profile
 from apps.accounts.views.delivery_partner_admin_view import get_delivery_partners, create_delivery_partner, \
     get_delivery_partner, update_delivery_partner, delete_delivery_partner
 from apps.accounts.views.delivery_partner_view import delivery_partner_login, get_delivery_partner_profile, \
@@ -20,6 +22,28 @@ urlpatterns = [
     #Admin
     path("admin/login/",admin_login_view,name="admin-login",),
     path("admin/users/",admin_get_all_users,name="admin-get-all-users",),
+path(
+        "superuser/profile/",
+        get_superuser_profile,
+        name="superuser-profile",
+    ),
+path(
+        "superuser/update-password/",
+        superuser_update_password,
+        name="superuser-update-password",
+    ),
+
+    path(
+        "superuser/update-email/",
+        superuser_update_email,
+        name="superuser-update-email",
+    ),
+
+    path(
+        "superuser/update-phone/",
+        superuser_update_phone,
+        name="superuser-update-phone",
+    ),
 
 
     # ADMIN - DELIVERY PARTNERS

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from apps.orders.models.order import Order
@@ -116,3 +118,12 @@ class AdminOrderItemDetailSerializer(
             "item_discount",
             "item_total",
         ]
+
+
+class AdminUpdateDeliveryFeeSerializer(serializers.Serializer):
+
+    delivery_fee = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+    )

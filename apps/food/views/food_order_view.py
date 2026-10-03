@@ -13,7 +13,7 @@ from apps.food.services.food_order_service import (
 
 
 def get_customer(request):
-    return request.user.customer
+    return request.user.customer_profile
 
 
 @api_view(["POST"])
@@ -32,16 +32,16 @@ def place_food_order(request):
 
     order = FoodOrderService.place_order(
         customer=customer,
+        cart_id=serializer.validated_data["cart_id"],
         address_id=serializer.validated_data["address_id"],
         payment_method=serializer.validated_data[
             "payment_method"
         ],
-        customer_note=serializer.validated_data.get(
-            "customer_note"
-        ),
     )
 
-    response_serializer = FoodOrderSerializer(order)
+    response_serializer = FoodOrderSerializer(
+        order
+    )
 
     return Response(
         {
@@ -60,7 +60,7 @@ def get_food_orders(request):
     customer = get_customer(request)
 
     orders = FoodOrderService.get_orders(
-        customer
+        customer=customer
     )
 
     serializer = FoodOrderSerializer(
@@ -68,11 +68,13 @@ def get_food_orders(request):
         many=True,
     )
 
-    return Response({
-        "success": True,
-        "message": "Food orders fetched successfully.",
-        "data": serializer.data,
-    })
+    return Response(
+        {
+            "success": True,
+            "message": "Food orders fetched successfully.",
+            "data": serializer.data,
+        }
+    )
 
 
 @api_view(["GET"])
@@ -86,13 +88,17 @@ def get_food_order(request, order_id):
         order_id=order_id,
     )
 
-    serializer = FoodOrderSerializer(order)
+    serializer = FoodOrderSerializer(
+        order
+    )
 
-    return Response({
-        "success": True,
-        "message": "Food order fetched successfully.",
-        "data": serializer.data,
-    })
+    return Response(
+        {
+            "success": True,
+            "message": "Food order fetched successfully.",
+            "data": serializer.data,
+        }
+    )
 
 
 @api_view(["PATCH"])
@@ -106,10 +112,14 @@ def cancel_food_order(request, order_id):
         order_id=order_id,
     )
 
-    serializer = FoodOrderSerializer(order)
+    serializer = FoodOrderSerializer(
+        order
+    )
 
-    return Response({
-        "success": True,
-        "message": "Food order cancelled successfully.",
-        "data": serializer.data,
-    })
+    return Response(
+        {
+            "success": True,
+            "message": "Food order cancelled successfully.",
+            "data": serializer.data,
+        }
+    )

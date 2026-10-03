@@ -64,29 +64,18 @@ def create_banner(request):
     )
 
 
-# ============================================================
-# APP - FETCH BANNERS
-# ============================================================
-
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_banners(request):
 
     section = request.query_params.get("section")
 
-    now = timezone.now()
-
+    # --------------------------------------------------------
+    # Get ALL banners
+    # --------------------------------------------------------
     banners = (
         Banner.objects
-        .filter(is_active=True)
-        .filter(
-            Q(start_at__isnull=True) |
-            Q(start_at__lte=now)
-        )
-        .filter(
-            Q(end_at__isnull=True) |
-            Q(end_at__gte=now)
-        )
+        .all()
         .prefetch_related("buttons")
         .order_by(
             "display_order",
@@ -97,7 +86,6 @@ def get_banners(request):
     # --------------------------------------------------------
     # Optional section filter
     # --------------------------------------------------------
-
     if section:
         banners = banners.filter(
             section=section.upper()
@@ -111,7 +99,7 @@ def get_banners(request):
     return Response(
         {
             "success": True,
-            "message": "Banners fetched successfully.",
+            "message": "All banners fetched successfully.",
             "data": serializer.data,
         },
         status=status.HTTP_200_OK,

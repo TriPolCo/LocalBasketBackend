@@ -16,5 +16,7 @@ urlpatterns = [
     path("api/v1/food/",include("apps.food.urls"),),
     path("api/v1/banner/",include("apps.banner.urls"),),
     path("api/v1/invoices/",include("apps.invoices.urls"),),
+    path("api/v1/delivery/",include("apps.delivery.urls"),),
+    path("api/v1/dashboard/",include("apps.dashboard.urls"),),
 
 ]

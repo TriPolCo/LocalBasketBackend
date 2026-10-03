@@ -6,6 +6,9 @@ from apps.food.models.food_order_item_addon import FoodOrderItemAddon
 
 
 class FoodOrderPlaceSerializer(serializers.Serializer):
+
+    cart_id = serializers.UUIDField()
+
     address_id = serializers.UUIDField()
 
     payment_method = serializers.ChoiceField(
@@ -13,16 +16,12 @@ class FoodOrderPlaceSerializer(serializers.Serializer):
         default=FoodOrder.PaymentMethod.COD,
     )
 
-    customer_note = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        allow_null=True,
-    )
-
 
 class FoodOrderItemAddonSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = FoodOrderItemAddon
+
         fields = [
             "id",
             "addon_name",
@@ -30,10 +29,12 @@ class FoodOrderItemAddonSerializer(serializers.ModelSerializer):
             "quantity",
             "total_amount",
         ]
+
         read_only_fields = fields
 
 
 class FoodOrderItemSerializer(serializers.ModelSerializer):
+
     addons = FoodOrderItemAddonSerializer(
         many=True,
         read_only=True,
@@ -41,6 +42,7 @@ class FoodOrderItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodOrderItem
+
         fields = [
             "id",
             "food_item",
@@ -55,10 +57,12 @@ class FoodOrderItemSerializer(serializers.ModelSerializer):
             "item_total",
             "addons",
         ]
+
         read_only_fields = fields
 
 
 class FoodOrderSerializer(serializers.ModelSerializer):
+
     items = FoodOrderItemSerializer(
         many=True,
         read_only=True,
@@ -70,6 +74,7 @@ class FoodOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FoodOrder
+
         fields = [
             "id",
             "order_number",
@@ -78,16 +83,17 @@ class FoodOrderSerializer(serializers.ModelSerializer):
             "payment_status",
             "pricing",
             "shipping_address",
-            "customer_note",
             "delivered_at",
             "cancelled_at",
             "items",
             "created_at",
             "updated_at",
         ]
+
         read_only_fields = fields
 
     def get_pricing(self, obj):
+
         return {
             "subtotal": str(obj.subtotal),
             "delivery_fee": str(obj.delivery_fee),
@@ -98,6 +104,7 @@ class FoodOrderSerializer(serializers.ModelSerializer):
         }
 
     def get_shipping_address(self, obj):
+
         return {
             "full_name": obj.shipping_full_name,
             "phone_number": obj.shipping_phone_number,

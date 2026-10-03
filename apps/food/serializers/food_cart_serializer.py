@@ -109,10 +109,9 @@ class FoodCartItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-
 class FoodCartSerializer(serializers.ModelSerializer):
+
     items = FoodCartItemSerializer(
-        source="items",
         many=True,
         read_only=True,
     )

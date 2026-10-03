@@ -17,6 +17,9 @@ from apps.food.views.food_menu_view import get_food_menus, get_food_items_by_men
 from apps.food.views.food_cart_view import get_food_cart, add_food_to_cart, update_food_cart_item, \
     increase_food_cart_item, \
     decrease_food_cart_item, remove_food_cart_item, clear_food_cart
+from apps.food.views.food_order_view import place_food_order, get_food_orders, get_food_order, cancel_food_order
+from apps.food.views.admin_food_order_view import admin_get_food_orders, admin_get_food_order, \
+    admin_update_food_order_status, admin_assign_food_delivery, admin_update_food_delivery_fee
 
 urlpatterns = [
     path("admin/menu/categories/",admin_get_menu_categories,name="admin-food-menu-categories",),
@@ -44,4 +47,20 @@ urlpatterns = [
     path("cart/<uuid:item_id>/decrease/",decrease_food_cart_item,name="decrease-food-cart-item",),
     path("cart/<uuid:item_id>/remove/",remove_food_cart_item,name="remove-food-cart-item",),
     path("cart/clear/",clear_food_cart,name="clear-food-cart",),
+
+
+    #Order APIS
+    path("orders/place/",place_food_order,name="place-food-order",),
+    path("orders/",get_food_orders,name="food-orders",),
+    path("orders/<uuid:order_id>/",get_food_order, name="food-order-detail",),
+    path("orders/<uuid:order_id>/cancel/",cancel_food_order,name="cancel-food-order",),
+
+
+
+    path("admin/orders/",admin_get_food_orders,name="admin-food-orders",),
+    path("admin/orders/<uuid:order_id>/",admin_get_food_order,name="admin-food-order-detail",),
+    path("admin/orders/<uuid:order_id>/status/",admin_update_food_order_status,name="admin-update-food-order-status",),
+    path("admin/orders/<uuid:order_id>/assign-delivery/",admin_assign_food_delivery,name="admin-assign-food-delivery",),
+    path("admin/orders/<uuid:order_id>/delivery-fee/",admin_update_food_delivery_fee, name="admin-update-food-delivery-fee",
+),
 ]

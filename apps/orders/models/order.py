@@ -1,6 +1,7 @@
 import uuid
 
 from django.db import models
+from decimal import Decimal
 
 
 class Order(models.Model):
@@ -40,6 +41,12 @@ class Order(models.Model):
         related_name="orders",
         null=True,
         blank=True,
+    )
+
+    delivery_fee = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
     )
 
     # --------------------------------------------------

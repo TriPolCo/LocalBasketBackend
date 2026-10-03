@@ -23,7 +23,9 @@ class FoodOrderService:
 
     @staticmethod
     def _generate_order_number():
+
         while True:
+
             number = (
                 f"FO-{timezone.now():%Y%m%d}-"
                 f"{uuid.uuid4().hex[:8].upper()}"
@@ -32,24 +34,36 @@ class FoodOrderService:
             if not FoodOrder.objects.filter(
                 order_number=number
             ).exists():
+
                 return number
 
     @staticmethod
     @transaction.atomic
     def place_order(
         customer,
+        cart_id,
         address_id,
         payment_method,
-        customer_note=None,
     ):
+
+        # -------------------------------------------------
+        # PAYMENT METHOD
+        # -------------------------------------------------
+
         if payment_method != FoodOrder.PaymentMethod.COD:
+
             raise ValidationError({
                 "payment_method": (
                     "Online payment is not available yet."
                 )
             })
 
+        # -------------------------------------------------
+        # GET CUSTOMER ADDRESS
+        # -------------------------------------------------
+
         try:
+
             address = (
                 Address.objects
                 .select_for_update()
@@ -58,26 +72,44 @@ class FoodOrderService:
                     customer=customer,
                 )
             )
+
         except Address.DoesNotExist:
+
             raise ValidationError({
                 "address_id": "Address not found."
             })
 
+        # -------------------------------------------------
+        # GET CART USING DYNAMIC CART ID
+        # -------------------------------------------------
+
         try:
+
             cart = (
                 FoodCart.objects
                 .select_for_update()
-                .get(customer=customer)
+                .get(
+                    id=cart_id,
+                    customer=customer,
+                )
             )
+
         except FoodCart.DoesNotExist:
+
             raise ValidationError({
-                "cart": "Food cart is empty."
+                "cart_id": "Food cart not found."
             })
+
+        # -------------------------------------------------
+        # GET CART ITEMS
+        # -------------------------------------------------
 
         cart_items = list(
             FoodCartItem.objects
             .select_for_update()
-            .filter(cart=cart)
+            .filter(
+                cart=cart
+            )
             .select_related(
                 "food_item",
                 "variant",
@@ -88,9 +120,14 @@ class FoodOrderService:
         )
 
         if not cart_items:
+
             raise ValidationError({
                 "cart": "Food cart is empty."
             })
+
+        # -------------------------------------------------
+        # CALCULATE ORDER
+        # -------------------------------------------------
 
         subtotal = Decimal("0.00")
 
@@ -101,7 +138,12 @@ class FoodOrderService:
             food_item = cart_item.food_item
             variant = cart_item.variant
 
+            # ---------------------------------------------
+            # FOOD ITEM VALIDATION
+            # ---------------------------------------------
+
             if not food_item.is_active:
+
                 raise ValidationError({
                     "food_item": (
                         f"{food_item.name} is no longer available."
@@ -109,13 +151,19 @@ class FoodOrderService:
                 })
 
             if not food_item.is_available:
+
                 raise ValidationError({
                     "food_item": (
                         f"{food_item.name} is currently unavailable."
                     )
                 })
 
+            # ---------------------------------------------
+            # VARIANT VALIDATION
+            # ---------------------------------------------
+
             if not variant.is_available:
+
                 raise ValidationError({
                     "variant": (
                         f"{variant.name} is currently unavailable."
@@ -124,11 +172,20 @@ class FoodOrderService:
 
             item_quantity = cart_item.quantity
 
+            # ---------------------------------------------
+            # FOOD BASE TOTAL
+            # ---------------------------------------------
+
             base_total = (
                 variant.price * item_quantity
             )
 
+            # ---------------------------------------------
+            # ADDONS
+            # ---------------------------------------------
+
             addon_total = Decimal("0.00")
+
             addon_snapshots = []
 
             for cart_addon in cart_item.addons.all():
@@ -136,6 +193,7 @@ class FoodOrderService:
                 addon = cart_addon.addon
 
                 if not addon.is_available:
+
                     raise ValidationError({
                         "addon": (
                             f"{addon.name} is no longer available."
@@ -143,6 +201,7 @@ class FoodOrderService:
                     })
 
                 if cart_addon.quantity > addon.max_quantity:
+
                     raise ValidationError({
                         "addon": (
                             f"{addon.name} allows maximum "
@@ -166,7 +225,14 @@ class FoodOrderService:
                     "total_amount": total_amount,
                 })
 
-            item_total = base_total + addon_total
+            # ---------------------------------------------
+            # ITEM TOTAL
+            # ---------------------------------------------
+
+            item_total = (
+                base_total
+                + addon_total
+            )
 
             subtotal += item_total
 
@@ -179,6 +245,10 @@ class FoodOrderService:
                 "item_total": item_total,
                 "addons": addon_snapshots,
             })
+
+        # -------------------------------------------------
+        # ORDER PRICING
+        # -------------------------------------------------
 
         delivery_fee = FoodOrderService.DELIVERY_FEE
         packaging_fee = FoodOrderService.PACKAGING_FEE
@@ -193,7 +263,12 @@ class FoodOrderService:
             - discount
         )
 
+        # -------------------------------------------------
+        # CREATE FOOD ORDER
+        # -------------------------------------------------
+
         order = FoodOrder.objects.create(
+
             order_number=FoodOrderService._generate_order_number(),
 
             customer=customer,
@@ -201,27 +276,43 @@ class FoodOrderService:
             status=FoodOrder.Status.PENDING,
 
             payment_method=payment_method,
+
             payment_status=FoodOrder.PaymentStatus.PENDING,
 
             subtotal=subtotal,
+
             delivery_fee=delivery_fee,
+
             packaging_fee=packaging_fee,
+
             discount=discount,
+
             tax=tax,
+
             total_amount=total_amount,
 
             shipping_full_name=address.full_name,
-            shipping_phone_number=address.phone_number,
-            shipping_address_line_1=address.address_line_1,
-            shipping_address_line_2=address.address_line_2,
-            shipping_landmark=address.landmark,
-            shipping_city=address.city,
-            shipping_state=address.state,
-            shipping_postal_code=address.postal_code,
-            shipping_country=address.country,
 
-            customer_note=customer_note,
+            shipping_phone_number=address.phone_number,
+
+            shipping_address_line_1=address.address_line_1,
+
+            shipping_address_line_2=address.address_line_2,
+
+            shipping_landmark=address.landmark,
+
+            shipping_city=address.city,
+
+            shipping_state=address.state,
+
+            shipping_postal_code=address.postal_code,
+
+            shipping_country=address.country,
         )
+
+        # -------------------------------------------------
+        # CREATE ORDER ITEMS
+        # -------------------------------------------------
 
         for data in order_items_data:
 
@@ -229,39 +320,62 @@ class FoodOrderService:
             variant = data["variant"]
 
             order_item = FoodOrderItem.objects.create(
+
                 order=order,
 
                 food_item=food_item,
+
                 variant=variant,
 
                 food_name=food_item.name,
+
                 food_type=food_item.food_type,
+
                 food_image_url=food_item.image_url,
 
                 variant_name=variant.name,
 
                 unit_price=variant.price,
+
                 quantity=data["quantity"],
 
                 addon_total=data["addon_total"],
+
                 item_total=data["item_total"],
             )
 
+            # ---------------------------------------------
+            # CREATE ORDER ITEM ADDONS
+            # ---------------------------------------------
+
             for addon_data in data["addons"]:
+
                 FoodOrderItemAddon.objects.create(
+
                     order_item=order_item,
 
                     addon=addon_data["addon"],
 
                     addon_name=addon_data["addon_name"],
+
                     unit_price=addon_data["unit_price"],
+
                     quantity=addon_data["quantity"],
+
                     total_amount=addon_data["total_amount"],
                 )
+
+        # -------------------------------------------------
+        # CLEAR ORDERED CART ITEMS
+        # -------------------------------------------------
 
         FoodCartItem.objects.filter(
             cart=cart
         ).delete()
+
+        # -------------------------------------------------
+        # RETURN CREATED ORDER
+        # -------------------------------------------------
 
         return FoodOrderService.get_order(
             customer=customer,
@@ -270,18 +384,28 @@ class FoodOrderService:
 
     @staticmethod
     def get_orders(customer):
+
         return (
             FoodOrder.objects
-            .filter(customer=customer)
-            .prefetch_related(
-                "items__addons",
+            .filter(
+                customer=customer
             )
-            .order_by("-created_at")
+            .prefetch_related(
+                "items__addons"
+            )
+            .order_by(
+                "-created_at"
+            )
         )
 
     @staticmethod
-    def get_order(customer, order_id):
+    def get_order(
+        customer,
+        order_id,
+    ):
+
         try:
+
             return (
                 FoodOrder.objects
                 .filter(
@@ -289,20 +413,26 @@ class FoodOrderService:
                     customer=customer,
                 )
                 .prefetch_related(
-                    "items__addons",
+                    "items__addons"
                 )
                 .get()
             )
+
         except FoodOrder.DoesNotExist:
+
             raise ValidationError({
                 "order": "Food order not found."
             })
 
     @staticmethod
     @transaction.atomic
-    def cancel_order(customer, order_id):
+    def cancel_order(
+        customer,
+        order_id,
+    ):
 
         try:
+
             order = (
                 FoodOrder.objects
                 .select_for_update()
@@ -311,10 +441,16 @@ class FoodOrderService:
                     customer=customer,
                 )
             )
+
         except FoodOrder.DoesNotExist:
+
             raise ValidationError({
                 "order": "Food order not found."
             })
+
+        # -------------------------------------------------
+        # CANCELLABLE STATUSES
+        # -------------------------------------------------
 
         cancellable_statuses = [
             FoodOrder.Status.PENDING,
@@ -322,13 +458,19 @@ class FoodOrderService:
         ]
 
         if order.status not in cancellable_statuses:
+
             raise ValidationError({
                 "status": (
                     "This order cannot be cancelled now."
                 )
             })
 
+        # -------------------------------------------------
+        # CANCEL ORDER
+        # -------------------------------------------------
+
         order.status = FoodOrder.Status.CANCELLED
+
         order.cancelled_at = timezone.now()
 
         order.save(

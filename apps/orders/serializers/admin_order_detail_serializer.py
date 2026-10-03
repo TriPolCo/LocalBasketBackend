@@ -5,6 +5,7 @@ from apps.orders.models.order_item import OrderItem
 
 
 class AdminOrderItemDetailSerializer(serializers.ModelSerializer):
+
     image = serializers.SerializerMethodField()
 
     class Meta:
@@ -25,6 +26,7 @@ class AdminOrderItemDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_image(self, obj):
+
         if not obj.variant:
             return None
 
@@ -41,8 +43,12 @@ class AdminOrderItemDetailSerializer(serializers.ModelSerializer):
 
 
 class AdminOrderDetailSerializer(serializers.ModelSerializer):
+
     customer = serializers.SerializerMethodField()
+
     shipping_address = serializers.SerializerMethodField()
+
+    delivery_partner = serializers.SerializerMethodField()
 
     items = AdminOrderItemDetailSerializer(
         many=True,
@@ -53,6 +59,7 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
         model = Order
 
         fields = [
+
             # Order
             "id",
             "order_number",
@@ -63,6 +70,9 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
 
             # Shipping
             "shipping_address",
+
+            # Delivery Partner
+            "delivery_partner",
 
             # Payment
             "payment_method",
@@ -88,10 +98,96 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
         ]
 
     # ========================================================
+    # DELIVERY PARTNER
+    # ========================================================
+
+    def get_delivery_partner(self, obj):
+
+        assignment = getattr(
+            obj,
+            "delivery_assignment",
+            None,
+        )
+
+        # Order has not been assigned
+        if not assignment:
+            return None
+
+        partner = assignment.delivery_partner
+        user = partner.user
+
+        return {
+            "assignment_id": str(
+                assignment.id
+            ),
+
+            "delivery_partner_id": str(
+                partner.id
+            ),
+
+            "name": (
+                f"{user.first_name} "
+                f"{user.last_name}"
+            ).strip(),
+
+            "phone_number": (
+                user.phone_number
+            ),
+
+            "email": user.email,
+
+            "profile_image_url": (
+                user.profile_image_url
+            ),
+
+            "status": assignment.status,
+
+            "is_available": (
+                partner.is_available
+            ),
+
+            # Assignment timestamps
+            "assigned_at": (
+                assignment.assigned_at
+            ),
+
+            "accepted_at": (
+                assignment.accepted_at
+            ),
+
+            "started_at": (
+                assignment.started_at
+            ),
+
+            "delivered_at": (
+                assignment.delivered_at
+            ),
+
+            # Delivery proof
+            "delivery_image_url": (
+                assignment.delivery_image_url
+            ),
+
+            "delivery_image_public_id": (
+                assignment.delivery_image_public_id
+            ),
+
+            # Payment
+            "payment_method": (
+                assignment.payment_method
+            ),
+
+            "payment_confirmed": (
+                assignment.payment_confirmed
+            ),
+        }
+
+    # ========================================================
     # CUSTOMER
     # ========================================================
 
     def get_customer(self, obj):
+
         customer = obj.customer
 
         if not customer:
@@ -101,13 +197,26 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
 
         return {
             "id": str(customer.id),
-            "user_id": str(user.id),
 
-            "first_name": user.first_name,
-            "last_name": user.last_name,
+            "user_id": str(
+                user.id
+            ),
 
-            "email": user.email,
-            "phone_number": user.phone_number,
+            "first_name": (
+                user.first_name
+            ),
+
+            "last_name": (
+                user.last_name
+            ),
+
+            "email": (
+                user.email
+            ),
+
+            "phone_number": (
+                user.phone_number
+            ),
         }
 
     # ========================================================
@@ -115,6 +224,7 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
     # ========================================================
 
     def get_shipping_address(self, obj):
+
         return {
             "id": (
                 str(obj.shipping_address_id)
@@ -122,17 +232,39 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
                 else None
             ),
 
-            "full_name": obj.shipping_full_name,
-            "phone_number": obj.shipping_phone_number,
+            "full_name": (
+                obj.shipping_full_name
+            ),
 
-            "address_line_1": obj.shipping_address_line_1,
-            "address_line_2": obj.shipping_address_line_2,
+            "phone_number": (
+                obj.shipping_phone_number
+            ),
 
-            "landmark": obj.shipping_landmark,
+            "address_line_1": (
+                obj.shipping_address_line_1
+            ),
 
-            "city": obj.shipping_city,
-            "state": obj.shipping_state,
+            "address_line_2": (
+                obj.shipping_address_line_2
+            ),
 
-            "postal_code": obj.shipping_postal_code,
-            "country": obj.shipping_country,
+            "landmark": (
+                obj.shipping_landmark
+            ),
+
+            "city": (
+                obj.shipping_city
+            ),
+
+            "state": (
+                obj.shipping_state
+            ),
+
+            "postal_code": (
+                obj.shipping_postal_code
+            ),
+
+            "country": (
+                obj.shipping_country
+            ),
         }

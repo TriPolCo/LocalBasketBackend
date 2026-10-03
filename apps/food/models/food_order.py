@@ -10,7 +10,6 @@ class FoodOrder(models.Model):
         CONFIRMED = "CONFIRMED", "Confirmed"
         PREPARING = "PREPARING", "Preparing"
         READY = "READY", "Ready"
-        OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY", "Out for Delivery"
         DELIVERED = "DELIVERED", "Delivered"
         CANCELLED = "CANCELLED", "Cancelled"
 

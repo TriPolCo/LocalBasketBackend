@@ -14,7 +14,7 @@ from apps.food.services.food_cart_service import (
 
 
 def get_customer(request):
-    return request.user.customer
+    return request.user.customer_profile
 
 
 @api_view(["GET"])
@@ -32,6 +32,13 @@ def get_food_cart(request):
         "message": "Food cart fetched successfully.",
         "data": serializer.data,
     })
+
+    
+
+
+
+def get_customer(request):
+    return request.user.customer_profile
 
 
 @api_view(["POST"])
@@ -89,7 +96,7 @@ def update_food_cart_item(request, item_id):
     })
 
 
-@api_view(["POST"])
+@api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def increase_food_cart_item(request, item_id):
 
@@ -109,7 +116,7 @@ def increase_food_cart_item(request, item_id):
     })
 
 
-@api_view(["POST"])
+@api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def decrease_food_cart_item(request, item_id):
 

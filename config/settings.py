@@ -48,7 +48,9 @@ INSTALLED_APPS = [
     "apps.printing",
     "apps.food",
     "apps.banner",
-    "apps.invoices"
+    "apps.invoices",
+    "apps.delivery",
+    "apps.dashboard"
 ]
 
 import os
@@ -92,12 +94,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 import dj_database_url
+#
+# DATABASES = {
+#     "default": dj_database_url.parse(
+#         os.getenv("DATABASE_URL"),
+#         conn_max_age=600,
+#     )
+# }
+
 
 DATABASES = {
-    "default": dj_database_url.parse(
-        os.getenv("DATABASE_URL"),
-        conn_max_age=600,
-    )
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "dailydrop_db",
+        "USER": "postgres",
+        "PASSWORD": "Polai79@79",
+        "HOST": "localhost",
+        "PORT": "5432",
+        "CONN_MAX_AGE": 600,
+    }
 }
 
 AUTH_USER_MODEL = "accounts.User"

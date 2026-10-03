@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from apps.accounts.permissions import IsAdmin
 
 from apps.orders.serializers.admin_order_serializer import (
-    AdminOrderSerializer,
+    AdminOrderSerializer, AdminUpdateDeliveryFeeSerializer,
 )
 from apps.orders.services.admin_order_service import (
     AdminOrderService,
@@ -15,6 +15,7 @@ from apps.orders.serializers.order_status_serializer import AdminOrderStatusUpda
 from apps.orders.services.order_service import OrderService
 from apps.orders.models.order import Order
 from apps.orders.serializers.admin_order_detail_serializer import AdminOrderDetailSerializer
+from apps.orders.serializers.order_serializer import OrderSerializer
 
 
 @api_view(["GET"])
@@ -118,6 +119,8 @@ def admin_update_order_status(request, order_id):
 def admin_get_order_details(request, order_id):
 
     order = AdminOrderService.get_order_details(order_id)
+    print("ORDER RESULT:", order)
+
     if not order:
         return Response(
             {
@@ -140,4 +143,38 @@ def admin_get_order_details(request, order_id):
         },
         status=status.HTTP_200_OK,
     )
+
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def admin_update_delivery_fee(
+    request,
+    order_id,
+):
+
+    serializer = AdminUpdateDeliveryFeeSerializer(
+        data=request.data
+    )
+
+    serializer.is_valid(
+        raise_exception=True
+    )
+
+    order = AdminOrderService.update_delivery_fee(
+        order_id=order_id,
+        delivery_fee=serializer.validated_data[
+            "delivery_fee"
+        ],
+    )
+
+    response_serializer = OrderSerializer(
+        order
+    )
+
+    return Response({
+        "success": True,
+        "message": "Delivery fee updated successfully.",
+        "data": response_serializer.data,
+    })
 

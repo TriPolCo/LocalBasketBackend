@@ -7,7 +7,7 @@ from apps.orders.views.order_view import (
     cancel_order,
 )
 
-from apps.orders.views.admin_order_view import admin_get_all_orders, admin_get_order_details
+from apps.orders.views.admin_order_view import admin_get_all_orders, admin_get_order_details, admin_update_delivery_fee
 from apps.orders.views.admin_order_view import admin_update_order_status
 
 urlpatterns = [
@@ -19,4 +19,6 @@ urlpatterns = [
     path("admin/all/",admin_get_all_orders,name="admin-get-all-orders",),
     path("admin/<uuid:order_id>/status/",admin_update_order_status,name="admin-update-order-status",),
     path("admin/<uuid:order_id>/details/",admin_get_order_details,name="admin-get-order-details",),
+    path("admin/<uuid:order_id>/delivery-fee/",admin_update_delivery_fee, name="admin-update-delivery-fee",)
+,
 ]

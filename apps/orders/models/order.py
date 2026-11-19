@@ -1,12 +1,19 @@
+# apps/orders/models/order.py
 import uuid
-
-from django.db import models
 from decimal import Decimal
+from django.db import models
 
 
 class Order(models.Model):
 
+    # 1. Order Type Choices
+    class OrderType(models.TextChoices):
+        REGULAR = "REGULAR", "Regular Cart Order"
+        IMAGE_LIST = "IMAGE_LIST", "Paper List Upload"
+        TEXT_LIST = "TEXT_LIST", "Written Text List"
+
     class Status(models.TextChoices):
+        PENDING_REVIEW = "PENDING_REVIEW", "Pending Review"  # For custom lists before price is set
         PROCESSING = "PROCESSING", "Processing"
         SHIPPED = "SHIPPED", "Shipped"
         DELIVERED = "DELIVERED", "Delivered"
@@ -34,6 +41,42 @@ class Order(models.Model):
         related_name="orders",
     )
 
+    # 2. Order Type Field
+    order_type = models.CharField(
+        max_length=20,
+        choices=OrderType.choices,
+        default=OrderType.REGULAR,
+        db_index=True,
+    )
+
+    # 3. Express Order Content Fields
+    list_image_url = models.URLField(
+        max_length=500,
+        null=True,
+        blank=True,
+        help_text="Cloudinary URL for uploaded paper list",
+    )
+
+    list_text_content = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Customer typed grocery items",
+    )
+
+    special_instructions = models.TextField(
+        null=True,
+        blank=True,
+    )
+
+    # 4. Admin-Entered Itemized Bill (for Paper List / Typed List Orders)
+    # Example: [{"quantity_label": "1 kg", "product_name": "Potato", "price": 20.0}]
+    manual_items = models.JSONField(
+    default=list,
+    blank=True,
+    null=True,
+    help_text="Admin-entered itemized bill for IMAGE_LIST / TEXT_LIST orders",
+)
+
     # Original address reference
     shipping_address = models.ForeignKey(
         "address.Address",
@@ -41,12 +84,6 @@ class Order(models.Model):
         related_name="orders",
         null=True,
         blank=True,
-    )
-
-    delivery_fee = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("0.00"),
     )
 
     # --------------------------------------------------
@@ -98,7 +135,6 @@ class Order(models.Model):
     # PAYMENT
     # --------------------------------------------------
 
-    # COD only for now
     payment_method = models.CharField(
         max_length=20,
         default="COD",
@@ -119,29 +155,31 @@ class Order(models.Model):
     subtotal = models.DecimalField(
         max_digits=12,
         decimal_places=2,
+        default=Decimal("0.00"),
     )
 
     delivery_fee = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0,
+        default=Decimal("0.00"),
     )
 
     discount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0,
+        default=Decimal("0.00"),
     )
 
     tax = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=0,
+        default=Decimal("0.00"),
     )
 
     total_amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
+        default=Decimal("0.00"),
     )
 
     # --------------------------------------------------

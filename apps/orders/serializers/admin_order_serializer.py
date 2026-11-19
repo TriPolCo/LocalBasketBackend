@@ -28,6 +28,9 @@ class AdminOrderItemSerializer(serializers.ModelSerializer):
         ]
 
     def get_image(self, obj):
+        if not obj.variant:
+            return None
+
         image = (
             obj.variant.images
             .order_by("display_order", "created_at")
@@ -48,6 +51,13 @@ class AdminOrderSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "order_number",
+            "order_type",
+
+            # Express List Order Details (Upload Image / Typed List)
+            "list_image_url",
+            "list_text_content",
+            "special_instructions",
+            "manual_items",
 
             "customer",
 
@@ -73,6 +83,9 @@ class AdminOrderSerializer(serializers.ModelSerializer):
         ]
 
     def get_customer(self, obj):
+        if not obj.customer:
+            return None
+
         user = obj.customer.user
 
         return {
@@ -102,9 +115,8 @@ class AdminOrderSerializer(serializers.ModelSerializer):
             "country": obj.shipping_country,
         }
 
-class AdminOrderItemDetailSerializer(
-    serializers.ModelSerializer
-):
+
+class AdminOrderItemDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
@@ -126,4 +138,38 @@ class AdminUpdateDeliveryFeeSerializer(serializers.Serializer):
         max_digits=12,
         decimal_places=2,
         min_value=Decimal("0.00"),
+    )
+
+
+class ManualBillItemSerializer(serializers.Serializer):
+
+    quantity_label = serializers.CharField(
+        max_length=50,
+        default="1 pc",
+    )
+    product_name = serializers.CharField(
+        max_length=255,
+    )
+    price = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+    )
+
+
+class AdminSaveExpressBillSerializer(serializers.Serializer):
+
+    items = ManualBillItemSerializer(many=True)
+    discount = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+        required=False,
+        default=Decimal("0.00"),
+    )
+    delivery_fee = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+        required=False,
     )

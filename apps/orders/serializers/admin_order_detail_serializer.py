@@ -63,7 +63,14 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
             # Order
             "id",
             "order_number",
+            "order_type",
             "status",
+
+            # Express List Order Details (Image List / Typed List)
+            "list_image_url",
+            "list_text_content",
+            "special_instructions",
+            "manual_items",
 
             # Customer
             "customer",
@@ -117,69 +124,22 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
         user = partner.user
 
         return {
-            "assignment_id": str(
-                assignment.id
-            ),
-
-            "delivery_partner_id": str(
-                partner.id
-            ),
-
-            "name": (
-                f"{user.first_name} "
-                f"{user.last_name}"
-            ).strip(),
-
-            "phone_number": (
-                user.phone_number
-            ),
-
+            "assignment_id": str(assignment.id),
+            "delivery_partner_id": str(partner.id),
+            "name": f"{user.first_name} {user.last_name}".strip(),
+            "phone_number": user.phone_number,
             "email": user.email,
-
-            "profile_image_url": (
-                user.profile_image_url
-            ),
-
+            "profile_image_url": user.profile_image_url,
             "status": assignment.status,
-
-            "is_available": (
-                partner.is_available
-            ),
-
-            # Assignment timestamps
-            "assigned_at": (
-                assignment.assigned_at
-            ),
-
-            "accepted_at": (
-                assignment.accepted_at
-            ),
-
-            "started_at": (
-                assignment.started_at
-            ),
-
-            "delivered_at": (
-                assignment.delivered_at
-            ),
-
-            # Delivery proof
-            "delivery_image_url": (
-                assignment.delivery_image_url
-            ),
-
-            "delivery_image_public_id": (
-                assignment.delivery_image_public_id
-            ),
-
-            # Payment
-            "payment_method": (
-                assignment.payment_method
-            ),
-
-            "payment_confirmed": (
-                assignment.payment_confirmed
-            ),
+            "is_available": partner.is_available,
+            "assigned_at": assignment.assigned_at,
+            "accepted_at": assignment.accepted_at,
+            "started_at": assignment.started_at,
+            "delivered_at": assignment.delivered_at,
+            "delivery_image_url": assignment.delivery_image_url,
+            "delivery_image_public_id": assignment.delivery_image_public_id,
+            "payment_method": assignment.payment_method,
+            "payment_confirmed": assignment.payment_confirmed,
         }
 
     # ========================================================
@@ -197,26 +157,11 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
 
         return {
             "id": str(customer.id),
-
-            "user_id": str(
-                user.id
-            ),
-
-            "first_name": (
-                user.first_name
-            ),
-
-            "last_name": (
-                user.last_name
-            ),
-
-            "email": (
-                user.email
-            ),
-
-            "phone_number": (
-                user.phone_number
-            ),
+            "user_id": str(user.id),
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "phone_number": user.phone_number,
         }
 
     # ========================================================
@@ -226,45 +171,14 @@ class AdminOrderDetailSerializer(serializers.ModelSerializer):
     def get_shipping_address(self, obj):
 
         return {
-            "id": (
-                str(obj.shipping_address_id)
-                if obj.shipping_address_id
-                else None
-            ),
-
-            "full_name": (
-                obj.shipping_full_name
-            ),
-
-            "phone_number": (
-                obj.shipping_phone_number
-            ),
-
-            "address_line_1": (
-                obj.shipping_address_line_1
-            ),
-
-            "address_line_2": (
-                obj.shipping_address_line_2
-            ),
-
-            "landmark": (
-                obj.shipping_landmark
-            ),
-
-            "city": (
-                obj.shipping_city
-            ),
-
-            "state": (
-                obj.shipping_state
-            ),
-
-            "postal_code": (
-                obj.shipping_postal_code
-            ),
-
-            "country": (
-                obj.shipping_country
-            ),
+            "id": str(obj.shipping_address_id) if obj.shipping_address_id else None,
+            "full_name": obj.shipping_full_name,
+            "phone_number": obj.shipping_phone_number,
+            "address_line_1": obj.shipping_address_line_1,
+            "address_line_2": obj.shipping_address_line_2,
+            "landmark": obj.shipping_landmark,
+            "city": obj.shipping_city,
+            "state": obj.shipping_state,
+            "postal_code": obj.shipping_postal_code,
+            "country": obj.shipping_country,
         }

@@ -46,7 +46,6 @@ def download_invoice(request, order_id):
         )
 
     except Order.DoesNotExist:
-
         return Response(
             {
                 "success": False,
@@ -60,23 +59,15 @@ def download_invoice(request, order_id):
     # GET / CREATE INVOICE
     # ---------------------------------------------------------
 
-    invoice = InvoiceService.get_or_create_invoice(
-        order
-    )
+    invoice = InvoiceService.get_or_create_invoice(order)
 
     # ---------------------------------------------------------
     # GENERATE PDF
     # ---------------------------------------------------------
 
-    pdf_buffer = InvoicePDFService.generate(
-        invoice
-    )
+    pdf_buffer = InvoicePDFService.generate(invoice)
 
-    filename = (
-        f"DailyDrops-"
-        f"{order.order_number}-"
-        f"Label.pdf"
-    )
+    filename = f"DailyDrops-{order.order_number}-Label.pdf"
 
     return FileResponse(
         pdf_buffer,
@@ -91,37 +82,24 @@ def download_invoice(request, order_id):
 def verify_delivery_qr(request, token):
 
     # ---------------------------------------------------------
-    # IMPORTANT:
-    # NO ORDER DATA IS RETURNED BEFORE AUTHORIZATION
+    # AUTHORIZATION & ROLE CHECK
     # ---------------------------------------------------------
 
     if not request.user.is_authenticated:
-
         return Response(
             {
                 "success": False,
-                "message": (
-                    "This QR code is only available "
-                    "for delivery partners."
-                ),
+                "message": "This QR code is only available for delivery partners.",
                 "data": None,
             },
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # ---------------------------------------------------------
-    # ROLE CHECK
-    # ---------------------------------------------------------
-
     if request.user.role != "DELIVERY_PARTNER":
-
         return Response(
             {
                 "success": False,
-                "message": (
-                    "This QR code is only available "
-                    "for delivery partners."
-                ),
+                "message": "This QR code is only available for delivery partners.",
                 "data": None,
             },
             status=status.HTTP_403_FORBIDDEN,
@@ -132,16 +110,13 @@ def verify_delivery_qr(request, token):
     # ---------------------------------------------------------
 
     try:
-
         invoice = (
             Invoice.objects
-            .select_related("order")
+            .select_related("order", "order__delivery_assignment")
             .prefetch_related("order__items")
             .get(qr_token=token)
         )
-
     except Invoice.DoesNotExist:
-
         return Response(
             {
                 "success": False,
@@ -154,11 +129,10 @@ def verify_delivery_qr(request, token):
     order = invoice.order
 
     # ---------------------------------------------------------
-    # OPTIONAL STATUS CHECK
+    # STATUS CHECK
     # ---------------------------------------------------------
 
     if order.status == Order.Status.CANCELLED:
-
         return Response(
             {
                 "success": False,
@@ -178,21 +152,36 @@ def verify_delivery_qr(request, token):
         else 0
     )
 
-    items = []
+    items = [
+        {
+            "product_name": item.product_name,
+            "quantity": item.quantity,
+            "selling_price": float(item.selling_price),
+            "item_total": float(item.item_total),
+        }
+        for item in order.items.all()
+    ]
 
-    for item in order.items.all():
-
-        items.append(
-            {
-                "product_name": item.product_name,
-                "quantity": item.quantity,
-                "selling_price": item.selling_price,
-                "item_total": item.item_total,
-            }
-        )
+    manual_items = getattr(order, "manual_items", None) or []
 
     # ---------------------------------------------------------
-    # RETURN DELIVERY DATA
+    # LINKED DELIVERY ASSIGNMENT
+    # ---------------------------------------------------------
+
+    try:
+        assignment = order.delivery_assignment
+    except Exception:
+        assignment = None
+
+    partner_profile = getattr(request.user, "delivery_partner_profile", None)
+    assigned_to_me = bool(
+        assignment
+        and partner_profile
+        and str(assignment.delivery_partner_id) == str(partner_profile.id)
+    )
+
+    # ---------------------------------------------------------
+    # RETURN VERIFIED DELIVERY DATA
     # ---------------------------------------------------------
 
     return Response(
@@ -200,14 +189,16 @@ def verify_delivery_qr(request, token):
             "success": True,
             "message": "Delivery order verified.",
             "data": {
+                "order_id": str(order.id),
+                "assignment_id": str(assignment.id) if assignment else None,
+                "assignment_status": assignment.status if assignment else None,
+                "assigned_to_me": assigned_to_me,
                 "invoice_number": invoice.invoice_number,
                 "order_number": order.order_number,
-
                 "customer": {
                     "name": order.shipping_full_name,
                     "phone": order.shipping_phone_number,
                 },
-
                 "address": {
                     "line_1": order.shipping_address_line_1,
                     "line_2": order.shipping_address_line_2,
@@ -217,16 +208,14 @@ def verify_delivery_qr(request, token):
                     "postal_code": order.shipping_postal_code,
                     "country": order.shipping_country,
                 },
-
                 "items": items,
-
+                "manual_items": manual_items,
                 "payment": {
                     "method": order.payment_method,
                     "status": order.payment_status,
-                    "total_amount": order.total_amount,
-                    "amount_to_collect": amount_to_collect,
+                    "total_amount": float(order.total_amount),
+                    "amount_to_collect": float(amount_to_collect),
                 },
-
                 "order_status": order.status,
             },
         },

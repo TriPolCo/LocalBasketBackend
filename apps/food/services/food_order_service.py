@@ -374,6 +374,38 @@ class FoodOrderService:
         ).delete()
 
         # -------------------------------------------------
+        # 🔔 TRIGGER REAL-TIME WEBSOCKET NOTIFICATION TO ADMIN
+        # -------------------------------------------------
+        try:
+            from apps.notifications.pusher_service import trigger_admin_order_notification
+
+            customer_name = (
+                order.shipping_full_name
+                or f"{getattr(customer.user, 'first_name', '')} {getattr(customer.user, 'last_name', '')}".strip()
+                or getattr(customer.user, "phone_number", "Customer")
+            )
+
+            trigger_admin_order_notification({
+                "id": str(order.id),
+                "order_id": str(order.id),
+                "order_number": order.order_number,
+                "order_type": "FOOD_ORDER",
+                "status": order.status,
+                "total_price": str(order.total_amount),
+                "total_amount": str(order.total_amount),
+                "customer": {
+                    "name": customer_name,
+                    "phone": order.shipping_phone_number or getattr(customer.user, "phone_number", ""),
+                    "city": order.shipping_city or "",
+                },
+                "items_count": len(order_items_data),
+                "created_at": order.created_at.strftime("%Y-%m-%d %H:%M:%S") if hasattr(order, 'created_at') else timezone.now().strftime("%Y-%m-%d %H:%M:%S"),
+            })
+        except Exception as e:
+            # try/except guarantees notification errors never cause order placement to fail
+            print(f"⚠️ Failed to send food order WebSocket notification: {e}")
+
+        # -------------------------------------------------
         # RETURN CREATED ORDER
         # -------------------------------------------------
 

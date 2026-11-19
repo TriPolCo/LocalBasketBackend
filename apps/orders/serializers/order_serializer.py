@@ -64,6 +64,9 @@ class OrderItemSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_image(self, obj):
+        if not obj.variant:
+            return None
+
         image = (
             obj.variant.images
             .order_by("display_order", "created_at")
@@ -75,6 +78,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
         return image.image_url
 
+
 class OrderSerializer(serializers.ModelSerializer):
 
     items = OrderItemSerializer(
@@ -84,13 +88,22 @@ class OrderSerializer(serializers.ModelSerializer):
 
     shipping_address = serializers.SerializerMethodField()
 
+    manual_items = serializers.SerializerMethodField()
+
     class Meta:
         model = Order
 
         fields = [
             "id",
             "order_number",
+            "order_type",
             "status",
+
+            # Express List Order Details (Paper List / Typed List / Admin Bill)
+            "list_image_url",
+            "list_text_content",
+            "special_instructions",
+            "manual_items",
 
             "payment_method",
             "payment_status",
@@ -113,6 +126,9 @@ class OrderSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = fields
+
+    def get_manual_items(self, obj):
+        return obj.manual_items or []
 
     def get_shipping_address(self, obj):
 

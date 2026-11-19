@@ -302,6 +302,38 @@ class ProductService:
 
         return queryset.order_by("-created_at")
 
+
+    @staticmethod
+    def get_products_admin(category=None):
+    
+            queryset = (
+                Product.objects
+                .select_related(
+                    "category",
+                    "subcategory",
+                    "brand",
+                )
+                .prefetch_related(
+                    "variants",
+                    "variants__images",
+                    "variants__variant_values",
+                    "variants__variant_values__value",
+                    "variants__variant_values__value__attribute",
+                )
+               
+            )
+    
+            # --------------------------------------------------
+            # Filter by category
+            # --------------------------------------------------
+            if category:
+                queryset = queryset.filter(
+                    category__slug=category
+                )
+    
+            return queryset.order_by("-created_at")
+    
+
     @staticmethod
     def get_product_by_id(product_id):
         return get_object_or_404(

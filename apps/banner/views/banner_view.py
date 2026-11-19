@@ -67,39 +67,34 @@ def create_banner(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_banners(request):
-
     section = request.query_params.get("section")
+    show_all = request.query_params.get("all") == "true"
 
-    # --------------------------------------------------------
-    # Get ALL banners
-    # --------------------------------------------------------
     banners = (
         Banner.objects
         .all()
         .prefetch_related("buttons")
-        .order_by(
-            "display_order",
-            "-created_at",
-        )
+        .order_by("display_order", "-created_at")
     )
 
-    # --------------------------------------------------------
-    # Optional section filter
-    # --------------------------------------------------------
     if section:
-        banners = banners.filter(
-            section=section.upper()
+        banners = banners.filter(section=section.upper())
+
+    # By default, only return active & currently scheduled banners for customers
+    if not show_all:
+        now = timezone.now()
+        banners = banners.filter(is_active=True).filter(
+            Q(start_at__isnull=True) | Q(start_at__lte=now)
+        ).filter(
+            Q(end_at__isnull=True) | Q(end_at__gte=now)
         )
 
-    serializer = BannerSerializer(
-        banners,
-        many=True,
-    )
+    serializer = BannerSerializer(banners, many=True)
 
     return Response(
         {
             "success": True,
-            "message": "All banners fetched successfully.",
+            "message": "Banners fetched successfully.",
             "data": serializer.data,
         },
         status=status.HTTP_200_OK,

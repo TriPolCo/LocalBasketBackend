@@ -3,6 +3,8 @@ from datetime import timedelta
 import os
 
 from dotenv import load_dotenv
+import certifi
+os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -240,3 +242,19 @@ EMAIL_OTP_MAX_ATTEMPTS = int(
         "5",
     )
 )
+
+
+# Pusher WebSocket Credentials
+PUSHER_APP_ID = "2213037"
+PUSHER_KEY = "7dba2a90fc884cf061b6"
+PUSHER_SECRET = "3d95b112db79bf339947"
+PUSHER_CLUSTER = "us2"  # e.g., 'ap2'
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "dailydropkalahandi@gmail.com"
+EMAIL_HOST_PASSWORD = "enxrclpvxgyvqiuy"
+DEFAULT_FROM_EMAIL = "DailyDrops <dailydropkalahandi@gmail.com>"
+EMAIL_TIMEOUT = 15

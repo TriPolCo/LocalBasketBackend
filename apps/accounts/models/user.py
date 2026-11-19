@@ -64,6 +64,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=True,
     )
 
+    store_phone_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        default="+919337172633",
+        help_text="Public store phone number displayed in mobile app for Call to Order",
+    )
+
     is_active = models.BooleanField(default=True)
 
     is_staff = models.BooleanField(default=False)

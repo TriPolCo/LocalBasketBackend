@@ -13,6 +13,11 @@ from apps.food.views.admin_food_view import (
     admin_update_food_item,
     admin_delete_food_item,
 )
+
+from apps.food.views.food_setting_view import (
+    get_food_store_status,
+    admin_update_food_store_status,
+)
 from apps.food.views.food_menu_view import get_food_menus, get_food_items_by_menu
 from apps.food.views.food_cart_view import get_food_cart, add_food_to_cart, update_food_cart_item, \
     increase_food_cart_item, \
@@ -63,4 +68,8 @@ urlpatterns = [
     path("admin/orders/<uuid:order_id>/assign-delivery/",admin_assign_food_delivery,name="admin-assign-food-delivery",),
     path("admin/orders/<uuid:order_id>/delivery-fee/",admin_update_food_delivery_fee, name="admin-update-food-delivery-fee",
 ),
+
+
+    path("store-status/", get_food_store_status, name="food-store-status"),
+    path("admin/store-status/", admin_update_food_store_status, name="admin-food-store-status"),
 ]
